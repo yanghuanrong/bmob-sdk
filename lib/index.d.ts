@@ -1,1 +1,1 @@
-declare const a = 1;
+export declare function sum(a: number, b: number): number;

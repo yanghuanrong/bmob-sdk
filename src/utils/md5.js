@@ -1,5 +1,3 @@
-
-(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(window.document);
 function safeAdd(x, y) {
   var lsw = (x & 0xffff) + (y & 0xffff);
   var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
@@ -201,111 +199,7 @@ function hexMD5(str) {
   return binl2hex(coreMD5(str2binl(str)));
 }
 
-var md5 = {
+module.exports = {
   hexMD5: hexMD5,
   utf8MD5: utf8MD5,
 };
-
-function randomString() {
-    let chars = [
-        '0',
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        'A',
-        'B',
-        'C',
-        'D',
-        'E',
-        'F',
-        'G',
-        'H',
-        'I',
-        'J',
-        'K',
-        'L',
-        'M',
-        'N',
-        'O',
-        'P',
-        'Q',
-        'R',
-        'S',
-        'T',
-        'U',
-        'V',
-        'W',
-        'X',
-        'Y',
-        'Z',
-        'a',
-        'b',
-        'c',
-        'd',
-        'e',
-        'f',
-        'g',
-        'h',
-        'i',
-        'j',
-        'k',
-        'l',
-        'm',
-        'n',
-        'o',
-        'p',
-        'q',
-        'r',
-        's',
-        't',
-        'u',
-        'v',
-        'w',
-        'x',
-        'y',
-        'z',
-    ];
-    let nums = '';
-    for (let i = 0; i < 16; i++) {
-        const id = parseInt(Math.random() * 61 + '');
-        nums += chars[id];
-    }
-    return nums;
-}
-
-const id = '39ee83f92ff3a195130596a4eaec5ddf';
-const key = 'a1223fca87f5d229953817f5c2493446';
-function setHeader(route, method, parma) {
-    const t = Math.round(new Date().getTime() / 1000);
-    const body = method === 'get' || method === 'delete' ? '' : JSON.stringify(parma);
-    const rand = randomString();
-    const sign = md5.utf8MD5(route + t + key + rand + body);
-    const header = {
-        'content-type': 'application/json',
-        'X-Bmob-SDK-Type': 'wechatApp',
-        'X-Bmob-Safe-Sign': sign,
-        'X-Bmob-Safe-Timestamp': t,
-        'X-Bmob-Noncestr-Key': rand,
-        'X-Bmob-SDK-Version': 10,
-        'X-Bmob-Secret-Key': id,
-    };
-    return header;
-}
-const route = `/1/classes/diary/fdffb09659`;
-const ajax = new XMLHttpRequest();
-ajax.open('GET', 'https://api2.bmob.cn/1/classes/diary/fdffb09659', true);
-const header = setHeader(route, 'GET', {});
-console.log(header);
-ajax.send();
-ajax.onreadystatechange = function () {
-    if (ajax.readyState == 4 && ajax.status == 200) {
-        console.log(ajax.responseText);
-    }
-};
-console.log(setHeader);

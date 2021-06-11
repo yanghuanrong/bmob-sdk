@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./lib", // 输出目录
-    "sourceMap": false, // 是否生成sourceMap
+    "sourceMap": true, // 是否生成sourceMap
     "target": "esnext", // 编译目标
     "module": "esnext", // 模块类型
     "moduleResolution": "node",
@@ -13,7 +13,6 @@
     "resolveJsonModule": true, // 加载json
     "esModuleInterop": true,
     "removeComments": true, // 删除注释
-
     "declaration": false, // 生成定义文件
     "declarationMap": false, // 生成定义sourceMap
     "declarationDir": "./lib/types", // 定义文件输出目录

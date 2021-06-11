@@ -7,6 +7,8 @@ import serve from 'rollup-plugin-serve';
 import packageJSON from './package.json';
 import livereload from 'rollup-plugin-livereload';
 import babel from 'rollup-plugin-babel';
+import clear from 'rollup-plugin-clear';
+// import { terser } from 'rollup-plugin-terser';
 
 const getPath = (_path) => path.resolve(__dirname, _path);
 const extensions = ['.js', '.ts', '.tsx'];
@@ -25,8 +27,11 @@ const esPlugin = eslint({
 
 // 基础配置
 const commonConf = {
-  input: getPath('./src/index.ts'),
+  input: getPath('./src/entry.ts'),
   plugins: [
+    clear({
+      targets: ['lib'],
+    }),
     resolve(extensions),
     commonjs(),
     esPlugin,
@@ -34,9 +39,10 @@ const commonConf = {
     babel({
       exclude: [/\/core-js\//],
       runtimeHelpers: true,
-      sourceMap: true,
+      sourceMap: false,
       extensions: ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts'],
     }),
+    // terser(),
     livereload(),
     serve({
       open: false, // 是否打开浏览器

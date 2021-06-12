@@ -1,5 +1,16 @@
 import { isValidKey } from '../utils/index';
 
+let XMLHttpRequest: any;
+
+try {
+  window && (XMLHttpRequest = window.XMLHttpRequest);
+} catch (error) {}
+
+try {
+  // @ts-ignore
+  global && (XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest);
+} catch (error) {}
+
 class Serve {
   baseURL: any;
   headers: any;

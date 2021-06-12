@@ -1,4 +1,5 @@
 import { isValidKey } from '../utils/index';
+import { ServeDTO } from '../interface';
 
 let XMLHttpRequest: any;
 
@@ -12,17 +13,18 @@ try {
 } catch (error) {}
 
 class Serve {
-  baseURL: any;
-  headers: any;
-  constructor(config: any) {
+  baseURL: string;
+  headers: object;
+  constructor(config: ServeDTO) {
     this['baseURL'] = config.baseURL;
     this['headers'] = config.headers;
   }
   request(method: string, route: string) {
     return new Promise((resolve, reject) => {
-      const ajax = new XMLHttpRequest();
       const site = this['baseURL'] + route;
       const headers = this['headers'];
+
+      const ajax = new XMLHttpRequest();
       ajax.open(method, site, true);
       Object.keys(headers).forEach((key) => {
         if (isValidKey(key, headers)) {

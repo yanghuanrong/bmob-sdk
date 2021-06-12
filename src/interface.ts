@@ -3,3 +3,8 @@ export interface coreDTO {
   securityCode: string;
   masterKey: undefined | string;
 }
+
+export interface ServeDTO {
+  baseURL: string;
+  headers: object;
+}

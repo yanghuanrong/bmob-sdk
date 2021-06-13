@@ -12,6 +12,14 @@ try {
   global && (XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest);
 } catch (error) {}
 
+function transform(data: any) {
+  let str = '';
+  for (let k in data) {
+    str += `${k}=${data[k]}`;
+  }
+  return str;
+}
+
 class Serve {
   baseURL: string;
   headers: object;
@@ -19,11 +27,10 @@ class Serve {
     this['baseURL'] = config.baseURL;
     this['headers'] = config.headers;
   }
-  request(method: string, route: string, data?: any) {
+  request(route: string, method = 'GET', param?: any) {
     return new Promise((resolve, reject) => {
       const site = this['baseURL'] + route;
       const headers = this['headers'];
-
       const ajax = new XMLHttpRequest();
       ajax.open(method, site, true);
       Object.keys(headers).forEach((key) => {
@@ -32,7 +39,7 @@ class Serve {
           ajax.setRequestHeader(key, value + '');
         }
       });
-      ajax.send(data);
+      ajax.send(JSON.stringify(param));
       ajax.onreadystatechange = function () {
         if (ajax.readyState == 4 && ajax.status == 200) {
           resolve(JSON.parse(ajax.responseText));
@@ -42,6 +49,13 @@ class Serve {
         }
       };
     });
+  }
+  get(route: string, param: object) {
+    const params = transform(param);
+    return this.request('GET', route + params);
+  }
+  post(route: string, param: object) {
+    return this.request('GET', route, param);
   }
 }
 

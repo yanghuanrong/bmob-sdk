@@ -3,7 +3,7 @@ import { QUERY } from './api';
 
 class Query {
   public tableName: string;
-  public addData: any;
+  public addData: any = {};
   constructor(tableName: string) {
     this.tableName = `${QUERY}${tableName}`;
   }
@@ -13,12 +13,12 @@ class Query {
   }
   set(key: string, value: string) {
     this.addData[key] = value;
+    return this;
   }
   save() {
     const saveData = this.addData;
     const method = 'POST';
-    const objectId = '';
-    request(`${this.tableName}/${objectId}`, method, saveData);
+    request(`${this.tableName}`, method, saveData);
   }
 }
 export default Query;

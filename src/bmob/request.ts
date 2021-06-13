@@ -23,12 +23,12 @@ function setHeader(route: string, method: string, parma: object) {
   return header;
 }
 
-function request(route: string, mehods: string) {
+function request(route: string, mehods: string, data?: any) {
   const Serve = new Web({
     baseURL,
-    headers: setHeader(route, mehods, {}),
+    headers: setHeader(route, mehods, data),
   });
-  return Serve.request(mehods, route);
+  return Serve.request(mehods, route, data);
 }
 
 export default request;

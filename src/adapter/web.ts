@@ -19,7 +19,7 @@ class Serve {
     this['baseURL'] = config.baseURL;
     this['headers'] = config.headers;
   }
-  request(method: string, route: string) {
+  request(method: string, route: string, data?: any) {
     return new Promise((resolve, reject) => {
       const site = this['baseURL'] + route;
       const headers = this['headers'];
@@ -32,7 +32,7 @@ class Serve {
           ajax.setRequestHeader(key, value + '');
         }
       });
-      ajax.send();
+      ajax.send(data);
       ajax.onreadystatechange = function () {
         if (ajax.readyState == 4 && ajax.status == 200) {
           resolve(JSON.parse(ajax.responseText));

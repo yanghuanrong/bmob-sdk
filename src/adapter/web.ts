@@ -41,7 +41,7 @@ class Serve {
       });
       ajax.send(JSON.stringify(param));
       ajax.onreadystatechange = function () {
-        if (ajax.readyState == 4 && ajax.status == 200) {
+        if (ajax.readyState === 4) {
           resolve(JSON.parse(ajax.responseText));
         }
         if (ajax.status >= 500) {
@@ -55,7 +55,7 @@ class Serve {
     return this.request('GET', route + params);
   }
   post(route: string, param: object) {
-    return this.request('GET', route, param);
+    return this.request('POST', route, param);
   }
 }
 

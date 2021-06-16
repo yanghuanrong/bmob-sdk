@@ -1,15 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
+  <body>
+    <script src="./lib/index.js"></script>
+    <script>
+      Bmob.initialize('c8bed465c9e6a524', '999999');
 
-<body>
-  <script src="./lib/index.js"></script>
-</body>
-
+      (async function () {
+        const User = Bmob.Query('zz');
+        console.log(User);
+        const data = await User.get('e7ccfddd96');
+        console.log(data, '---');
+        data.set('content', '1111');
+        data.save();
+        // User.set('title', '1234');
+        // User.set({
+        //   content: 'hello',
+        // });
+        // const data = await User.save();
+        // console.log(data);
+      })();
+    </script>
+  </body>
 </html>

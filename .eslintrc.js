@@ -1,7 +1,5 @@
 const path = require('path');
 const resolve = (_path) => path.resolve(__dirname, _path);
-const DOMGlobals = ['window', 'document'];
-const NodeGlobals = ['module', 'require'];
 
 module.exports = {
   env: {
@@ -18,7 +16,7 @@ module.exports = {
   rules: {
     indent: ['error', 2],
     'no-unused-vars': 'error',
-    'no-restricted-globals': ['error', ...DOMGlobals, ...NodeGlobals],
+    'no-restricted-globals': ['error'],
     'no-console': 'off',
     'no-restricted-globals': 'off',
   },

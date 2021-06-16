@@ -1,10 +1,11 @@
 import request from './request';
 import { QUERY } from './api';
-import { isObject, isString } from 'src/utils';
+import { isObject, isString, error } from 'src/utils';
+import { injectProperty } from '../utils/decorator';
 
 class Query {
   public tableName: string;
-  public addData: any = {};
+  public setData: any = {};
   constructor(tableName: string) {
     this.tableName = `${QUERY}${tableName}`;
   }
@@ -14,13 +15,13 @@ class Query {
    * @param id
    * @returns
    */
+  @injectProperty
   async get(id: string) {
     if (!isString(id)) {
-      new Error('参数类型错误');
+      error(400);
     }
     const route = `${this.tableName}/${id}`;
     const result = await request(route, 'GET');
-    console.log(result);
     return result;
   }
 
@@ -32,11 +33,12 @@ class Query {
    */
   set(key: any, value?: string) {
     if (isObject(key)) {
-      this.addData = { ...this.addData, ...key };
+      this.setData = { ...this.setData, ...key };
     } else if (isString(key)) {
-      this.addData[key] = value;
+      key === 'id' && (key = 'objectId');
+      this.setData[key] = value;
     } else {
-      new Error('参数类型错误');
+      error(400);
     }
     return this;
   }
@@ -45,9 +47,16 @@ class Query {
    * 保存数据
    */
   save() {
-    const saveData = this.addData;
-    const method = 'POST';
-    return request(`${this.tableName}`, method, saveData);
+    const rest = { ...this.setData };
+    const method = this.setData.objectId ? 'PUT' : 'POST';
+    const objectId = this.setData.objectId || '';
+
+    delete rest.createdAt;
+    delete rest.updatedAt;
+    delete rest.objectId;
+
+    return request(`${this.tableName}/${objectId}`, method, rest);
   }
 }
+
 export default Query;

@@ -12,4 +12,6 @@ const Bmob = {
   },
 };
 
+(<any>window).Bmob = Bmob;
+
 export default Bmob;

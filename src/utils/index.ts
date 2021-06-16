@@ -19,6 +19,22 @@ export const isFunction = (targe: any): boolean =>
   toString.call(targe) === '[object Function]';
 
 /**
+ * 参数错误报错信息
+ * @param param
+ * @returns
+ */
+export function error(param: string | number) {
+  const list: any = {
+    400: 'incorrect parameter type. 参数类型错误',
+  };
+  if (!list[param]) {
+    throw Error(param as string);
+  } else {
+    throw Error(list[param]);
+  }
+}
+
+/**
  * 判断key是否在对象上
  * @param key
  * @param object

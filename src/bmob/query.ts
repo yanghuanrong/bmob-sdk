@@ -1,11 +1,13 @@
 import request from './request';
 import { QUERY } from './api';
-import { isObject, isString, error } from 'src/utils';
+import { isObject, isString, isArray, error } from 'src/utils';
 import { injectProperty } from '../utils/decorator';
 
 class Query {
   public tableName: string;
   public setData: any = {};
+  public setArray: any = {};
+
   constructor(tableName: string) {
     this.tableName = `${QUERY}${tableName}`;
   }
@@ -40,6 +42,67 @@ class Query {
     } else {
       error(400);
     }
+    return this;
+  }
+
+  /**
+   * 删除一行数据
+   * @param id
+   * @returns
+   */
+  destroy(id?: string) {
+    if (id && !isString(id)) {
+      error(400);
+    }
+    const objectId = id || this.setData.objectId;
+    return request(`${this.tableName}/${objectId}`, 'DELETE');
+  }
+
+  /**
+   * 在一个数组的末尾加入一个给定的对象
+   * @param key
+   * @param val
+   */
+  add(key: string, value: Array<any>) {
+    if (!isString(key) || !isArray(value)) {
+      error(400);
+    }
+    this.setArray[key] = {
+      __op: 'Add',
+      objects: value,
+    };
+    return this;
+  }
+
+  /**
+   * 删除数组
+   * @param key
+   * @param value
+   */
+  remove(key: string, value: Array<any>) {
+    if (!isString(key) || !isArray(value)) {
+      error(400);
+    }
+    this.setArray[key] = {
+      __op: 'Remove',
+      objects: value,
+    };
+    return this;
+  }
+
+  /**
+   * 把原本不存在的对象加入数组，加入的位置没有保证
+   * @param key
+   * @param val
+   */
+  addUnique(key: string, value: Array<any>) {
+    if (!isString(key) || !isArray(value)) {
+      error(400);
+    }
+    this.setArray[key] = {
+      __op: 'AddUnique',
+      objects: value,
+    };
     return this;
   }
 

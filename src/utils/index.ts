@@ -28,9 +28,11 @@ export function error(param: string | number) {
     400: 'incorrect parameter type. 参数类型错误',
   };
   if (!list[param]) {
-    throw Error(param as string);
+    console.error(`Error: ${param}`);
+    throw Error();
   } else {
-    throw Error(list[param]);
+    console.error(`Error: ${list[param]}`);
+    throw Error();
   }
 }
 

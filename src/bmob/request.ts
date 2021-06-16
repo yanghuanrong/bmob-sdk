@@ -1,7 +1,7 @@
 import core from './core';
 import md5 from '../utils/md5';
 import { randomString } from '../utils/index';
-import Web from '../adapter/web';
+import Web from '../adapter/xhr';
 import { baseURL } from './api';
 
 function setHeader(route: string, method: string, parma: object) {

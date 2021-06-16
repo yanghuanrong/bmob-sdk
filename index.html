@@ -14,11 +14,9 @@
 
       (async function () {
         const User = Bmob.Query('zz');
-        console.log(User);
-        const data = await User.get('e7ccfddd96');
-        console.log(data, '---');
-        data.set('content', '1111');
-        data.save();
+        User.get('e7ccfddd96').then((res) => {
+          console.log(res);
+        });
         // User.set('title', '1234');
         // User.set({
         //   content: 'hello',

@@ -1,12 +1,14 @@
 import request from './request';
 import { QUERY } from './api';
-import { isObject, isString, isArray, error } from 'src/utils';
+import { isObject, isString, isArray, isNumber, error } from 'src/utils';
 import { injectProperty } from '../utils/decorator';
 
 class Query {
   public tableName: string;
   public setData: any = {};
+  public unsetData: any = {};
   public setArray: any = {};
+  public setIncremen: any = {};
 
   constructor(tableName: string) {
     this.tableName = `${QUERY}${tableName}`;
@@ -46,6 +48,19 @@ class Query {
   }
 
   /**
+   * 删除字段的值
+   * @param key
+   */
+  unset(key: string) {
+    if (!isString(key)) {
+      error(400);
+    }
+    this.unsetData[key] = {
+      __op: 'Delete',
+    };
+  }
+
+  /**
    * 删除一行数据
    * @param id
    * @returns
@@ -75,22 +90,6 @@ class Query {
   }
 
   /**
-   * 删除数组
-   * @param key
-   * @param value
-   */
-  remove(key: string, value: Array<any>) {
-    if (!isString(key) || !isArray(value)) {
-      error(400);
-    }
-    this.setArray[key] = {
-      __op: 'Remove',
-      objects: value,
-    };
-    return this;
-  }
-
-  /**
    * 把原本不存在的对象加入数组，加入的位置没有保证
    * @param key
    * @param val
@@ -107,10 +106,46 @@ class Query {
   }
 
   /**
+   * 删除数组
+   * @param key
+   * @param value
+   */
+  remove(key: string, value: Array<any>) {
+    if (!isString(key) || !isArray(value)) {
+      error(400);
+    }
+    this.setArray[key] = {
+      __op: 'Remove',
+      objects: value,
+    };
+    return this;
+  }
+
+  /**
+   * 原子计数器
+   * @param key
+   * @param value
+   */
+  increment(key: string, value: number = 1) {
+    if (!isString(key) || !isNumber(value)) {
+      error(400);
+    }
+    this.setIncremen[key] = {
+      __op: 'Increment',
+      amount: value,
+    };
+  }
+
+  /**
    * 保存数据
    */
   save() {
-    const rest = { ...this.setData };
+    const rest = {
+      ...this.setData,
+      ...this.unsetData,
+      ...this.setArray,
+      ...this.setIncremen,
+    };
     const method = this.setData.objectId ? 'PUT' : 'POST';
     const objectId = this.setData.objectId || '';
 

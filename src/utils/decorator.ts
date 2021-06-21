@@ -18,13 +18,21 @@ export function injectProperty(
       const rest = { ...result };
 
       Query.setData = rest;
-      ['set', 'save', 'destroy', 'add', 'addUnique', 'remove'].forEach(
-        (key) => {
-          Object.defineProperty(result, key, {
-            value: Query[key].bind(Query),
-          });
-        }
-      );
+
+      [
+        'set',
+        'unset',
+        'destroy',
+        'add',
+        'addUnique',
+        'remove',
+        'increment',
+        'save',
+      ].forEach((key) => {
+        Object.defineProperty(result, key, {
+          value: Query[key].bind(Query),
+        });
+      });
 
       return result;
     } catch (error) {

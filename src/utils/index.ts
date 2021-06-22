@@ -1,3 +1,4 @@
+import { pointDTO } from '../interface';
 /**
  * 类型判断
  * @param targe
@@ -19,6 +20,22 @@ export const isFunction = (targe: any): boolean =>
   toString.call(targe) === '[object Function]';
 
 /**
+ * 判断地理坐标
+ * @param point
+ */
+export function isPoint({ latitude, longitude }: pointDTO) {
+  if (
+    latitude < -90.0 ||
+    latitude > 90.0 ||
+    longitude < -180.0 ||
+    longitude > 180.0
+  ) {
+    return false;
+  }
+  return true;
+}
+
+/**
  * 参数错误报错信息
  * @param param
  * @returns
@@ -26,6 +43,8 @@ export const isFunction = (targe: any): boolean =>
 export function error(param: string | number) {
   const list: any = {
     400: 'incorrect parameter type. 参数类型错误',
+    401: 'Parameter is null. 参数为空',
+    402: 'Bmob.GeoPoint location error. 参数错误',
   };
   if (!list[param]) {
     console.error(`Error: ${param}`);

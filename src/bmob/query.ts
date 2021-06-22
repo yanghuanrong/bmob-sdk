@@ -1,17 +1,45 @@
 import request from './request';
-import { QUERY } from './api';
-import { isObject, isString, isArray, isNumber, error } from 'src/utils';
-import { injectProperty } from '../utils/decorator';
+import { QUERY, BATCH } from './api';
+import { injectProperty, injectQuery } from '../utils/decorator';
+import { pointDTO } from '../interface';
+import {
+  isObject,
+  isString,
+  isArray,
+  isNumber,
+  isPoint,
+  isUndefined,
+  error,
+  isValidKey,
+} from 'src/utils';
 
 class Query {
+  // 表名
   public tableName: string;
+
+  // 需要保存的数据
   public setData: any = {};
+
+  // 需要清空字段值的数据
   public unsetData: any = {};
+
+  // 字段数组数据
   public setArray: any = {};
+
+  // 原子计数器数据
   public setIncremen: any = {};
 
+  // 地理位置
+  public location: any = {};
+
+  // 统计相关数据
+  public stat: any = {};
+
+  // 条件查询数据
+  public queryData: any = {};
+
   constructor(tableName: string) {
-    this.tableName = `${QUERY}${tableName}`;
+    this.tableName = `${QUERY}/${tableName}`;
   }
 
   /**
@@ -35,7 +63,7 @@ class Query {
    * @param value
    * @returns
    */
-  set(key: any, value?: string) {
+  set(key: any, value?: any) {
     if (isObject(key)) {
       this.setData = { ...this.setData, ...key };
     } else if (isString(key)) {
@@ -44,6 +72,23 @@ class Query {
     } else {
       error(400);
     }
+    return this;
+  }
+
+  /**
+   * 设置地理坐标
+   * @param key
+   * @param point
+   * @returns
+   */
+  setPoint(key: string, point: pointDTO) {
+    if (!isPoint(point)) {
+      error('402');
+    }
+    this.setData[key] = {
+      __type: 'GeoPoint',
+      ...point,
+    };
     return this;
   }
 
@@ -139,8 +184,12 @@ class Query {
   /**
    * 保存数据
    */
-  save() {
+  async save(param = {}) {
+    if (!isObject(param)) {
+      error(400);
+    }
     const rest = {
+      ...param,
       ...this.setData,
       ...this.unsetData,
       ...this.setArray,
@@ -153,7 +202,152 @@ class Query {
     delete rest.updatedAt;
     delete rest.objectId;
 
-    return request(`${this.tableName}/${objectId}`, method, rest);
+    const result = await request(`${this.tableName}/${objectId}`, method, rest);
+
+    this.setData = {};
+    this.unsetData = {};
+    this.setArray = {};
+    this.setIncremen = {};
+
+    return result;
+  }
+
+  /**
+   * 批量保存
+   */
+  async saveAll(param: Array<any>) {
+    if (!isArray(param)) {
+      error(400);
+    }
+    if (param.length < 1) {
+      error(401);
+    }
+
+    const key = param.map((item) => {
+      const id = item.objectId || '';
+      const method = item.objectId ? 'PUT' : 'POST';
+
+      return {
+        method: method,
+        path: `${this.tableName}/${id}`,
+        body: item.setData,
+      };
+    });
+
+    return request(BATCH, 'POST', {
+      requests: key,
+    });
+  }
+
+  /**
+   * 查询地理位置
+   * @param field
+   * @param param1
+   * @param km
+   * @returns
+   */
+  withinKilometers(key: string, point: pointDTO, km = 100) {
+    this.location[key] = {
+      $nearSphere: {
+        __type: 'GeoPoint',
+        ...point,
+      },
+      $maxDistanceInKilometers: km,
+    };
+
+    return this;
+  }
+
+  /**
+   * 查询地理位置 矩形
+   * @param field
+   * @param param1
+   * @param km
+   * @returns
+   */
+  withinGeoBox(key: string, point: pointDTO, boxPoint: pointDTO) {
+    this.location[key] = {
+      $within: {
+        $box: [
+          {
+            __type: 'GeoPoint',
+            ...point,
+          },
+          {
+            __type: 'GeoPoint',
+            ...boxPoint,
+          },
+        ],
+      },
+    };
+    return this;
+  }
+
+  /**
+   * 统计数据查询
+   * @param key
+   * @param val
+   * @returns
+   */
+  statTo(key: string, value: any) {
+    if (!isString(key)) {
+      error(400);
+    }
+    this.stat[key] = value;
+    return this;
+  }
+
+  /**
+   * 条件查询 判断值
+   * @param key
+   * @param operator
+   * @param value
+   */
+  equalTo(key: string, operator: string, value: any) {
+    if (!isString(key)) {
+      error(400);
+    }
+    const operators = {
+      '==': value,
+      '===': value,
+      '!=': { $ne: value },
+      '<': { $lt: value },
+      '<=': { $lte: value },
+      '>': { $gt: value },
+      '>=': { $gte: value },
+    };
+
+    if (isValidKey(operator, operators)) {
+      const data = operators[operator];
+      if (Object.keys(this.queryData).length) {
+        if (!isUndefined(this.queryData.$and)) {
+          this.queryData.$and.push(data);
+        } else {
+          this.queryData = {
+            $and: [this.queryData, data],
+          };
+        }
+      } else {
+        this.queryData = data;
+      }
+    } else {
+      error(400);
+    }
+    return this;
+  }
+
+  /**
+   * 条件查询 包含在数组中
+   * @param key
+   * @param value
+   * @returns
+   */
+  @injectQuery('$in')
+  containedIn(key: string, value: Array<any>) {
+    if (!isString(key) || !isArray(value)) {
+      error(400);
+    }
+    return this;
   }
 }
 

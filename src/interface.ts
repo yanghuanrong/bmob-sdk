@@ -8,3 +8,8 @@ export interface ServeDTO {
   baseURL: string;
   headers: object;
 }
+
+export interface pointDTO {
+  latitude: number;
+  longitude: number;
+}

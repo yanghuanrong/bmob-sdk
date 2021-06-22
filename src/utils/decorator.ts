@@ -1,3 +1,4 @@
+import { isUndefined } from './index';
 /**
  * 给返回的数据注入属性
  * @param target
@@ -21,6 +22,7 @@ export function injectProperty(
 
       [
         'set',
+        'setPoint',
         'unset',
         'destroy',
         'add',
@@ -40,4 +42,44 @@ export function injectProperty(
     }
   };
   return descriptor;
+}
+
+/**
+ * 添加条件查询数据
+ * @param target
+ * @param propertyKey
+ * @param descriptor
+ */
+export function injectQuery(operator: string) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: TypedPropertyDescriptor<any>
+  ) {
+    const originalMethod = descriptor.value;
+
+    descriptor.value = function (...args: any) {
+      const self = originalMethod.apply(this, args);
+      const [key, value] = args;
+      const data = {
+        [key]: {
+          [operator]: value,
+        },
+      };
+      console.log(self.queryData);
+      if (Object.keys(self.queryData).length) {
+        if (!isUndefined(self.queryData.$and)) {
+          self.queryData.$and.push(data);
+        } else {
+          self.queryData = {
+            $and: [self.queryData, data],
+          };
+        }
+      } else {
+        self.queryData = data;
+      }
+
+      return self;
+    };
+  };
 }

@@ -1,5 +1,5 @@
 import { isValidKey } from '../utils/index';
-import { ServeDTO } from '../interface';
+import { ServeDTO, reqDTO } from '../interface';
 
 let XMLHttpRequest: any;
 
@@ -14,8 +14,9 @@ try {
 
 function transform(data: any) {
   let str = '';
+  console.log(data);
   for (let k in data) {
-    str += `${k}=${data[k]}`;
+    str += `${k}=${JSON.stringify(data[k])}&`;
   }
   return str;
 }
@@ -27,9 +28,14 @@ class Serve {
     this['baseURL'] = config.baseURL;
     this['headers'] = config.headers;
   }
-  request(route: string, method = 'GET', param?: any) {
+  request({ route, method = 'GET', param, data }: reqDTO) {
     return new Promise((resolve, reject) => {
-      const site = this['baseURL'] + route;
+      let site = this['baseURL'] + route;
+
+      if (method === 'GET') {
+        site += `?${transform(param)}`;
+      }
+
       const headers = this['headers'];
       const ajax = new XMLHttpRequest();
       ajax.open(method, site, true);
@@ -39,7 +45,7 @@ class Serve {
           ajax.setRequestHeader(key, value + '');
         }
       });
-      ajax.send(JSON.stringify(param));
+      ajax.send(JSON.stringify(data));
       ajax.onreadystatechange = function () {
         if (ajax.readyState === 4) {
           resolve(JSON.parse(ajax.responseText));
@@ -49,13 +55,6 @@ class Serve {
         }
       };
     });
-  }
-  get(route: string, param: object) {
-    const params = transform(param);
-    return this.request('GET', route + params);
-  }
-  post(route: string, param: object) {
-    return this.request('POST', route, param);
   }
 }
 

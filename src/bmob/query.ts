@@ -1,6 +1,6 @@
 import request from './request';
 import { QUERY, BATCH } from './api';
-import { injectProperty, injectQuery } from '../utils/decorator';
+import { injectProperty, injectQuery, getParams } from '../utils/decorator';
 import { pointDTO } from '../interface';
 import {
   isObject,
@@ -14,6 +14,9 @@ import {
 } from 'src/utils';
 
 class Query {
+  // 查询api路径
+  public queryPath: string;
+
   // 表名
   public tableName: string;
 
@@ -38,8 +41,33 @@ class Query {
   // 条件查询数据
   public queryData: any = {};
 
+  // 或查询数据
+  public orData: any = {};
+
+  // 和查询数据
+  public andData: any = {};
+
+  // 分页数据
+  public limitData: number = 100;
+
+  // 跳页数据
+  public skipData: number = 0;
+
+  // 结果排序
+  public orderData: any = null;
+
+  // Pointer 关联表
+  public includeData: any = null;
+
+  // 指定列数据
+  public selectData: any = null;
+
+  // Relation数据
+  public queryReilation: any = {};
+
   constructor(tableName: string) {
-    this.tableName = `${QUERY}/${tableName}`;
+    this.queryPath = `${QUERY}/${tableName}`;
+    this.tableName = tableName;
   }
 
   /**
@@ -52,7 +80,7 @@ class Query {
     if (!isString(id)) {
       error(400);
     }
-    const route = `${this.tableName}/${id}`;
+    const route = `${this.queryPath}/${id}`;
     const result = await request(route, 'GET');
     return result;
   }
@@ -115,7 +143,7 @@ class Query {
       error(400);
     }
     const objectId = id || this.setData.objectId;
-    return request(`${this.tableName}/${objectId}`, 'DELETE');
+    return request(`${this.queryPath}/${objectId}`, 'DELETE');
   }
 
   /**
@@ -202,7 +230,7 @@ class Query {
     delete rest.updatedAt;
     delete rest.objectId;
 
-    const result = await request(`${this.tableName}/${objectId}`, method, rest);
+    const result = await request(`${this.queryPath}/${objectId}`, method, rest);
 
     this.setData = {};
     this.unsetData = {};
@@ -229,7 +257,7 @@ class Query {
 
       return {
         method: method,
-        path: `${this.tableName}/${id}`,
+        path: `${this.queryPath}/${id}`,
         body: item.setData,
       };
     });
@@ -348,6 +376,194 @@ class Query {
       error(400);
     }
     return this;
+  }
+
+  /**
+   * 条件查询 不包含在数组中
+   * @param key
+   * @param value
+   * @returns
+   */
+  @injectQuery('$nin')
+  notContainedIn(key: string, value: Array<any>) {
+    if (!isString(key) || !isArray(value)) {
+      error(400);
+    }
+    return this;
+  }
+
+  /**
+   * 条件查询 这个key有值
+   * @param key
+   * @param value
+   * @returns
+   */
+  @injectQuery('$exists', true)
+  exists(key: string) {
+    if (!isString(key)) {
+      error(400);
+    }
+    return this;
+  }
+
+  /**
+   * 条件查询 这个key无值
+   * @param key
+   * @param value
+   * @returns
+   */
+  @injectQuery('$exists', false)
+  doesNotExist(key: string) {
+    if (!isString(key)) {
+      error(400);
+    }
+    return this;
+  }
+
+  /**
+   * 或查询
+   * @param querys
+   */
+  or(...querys: any[]) {
+    querys.forEach((item) => {
+      if (!isObject(item)) {
+        error(400);
+      }
+    });
+    const queryData = this.queryData.$and;
+    if (!isUndefined(queryData)) {
+      for (let i = 0; i < queryData.length; i++) {
+        for (let k = 0; k < querys.length; k++) {
+          if (JSON.stringify(queryData[i]) === JSON.stringify(querys[k])) {
+            this.queryData.$and.splice(i, 1);
+          }
+        }
+      }
+      if (!queryData.length) {
+        delete this.queryData.$and;
+      }
+    }
+    this.orData = {
+      $or: querys,
+    };
+  }
+
+  /**
+   * 和查询
+   * @param querys
+   */
+  and(...querys: any[]) {
+    querys.forEach((item) => {
+      if (!isObject(item)) {
+        error(400);
+      }
+    });
+    this.andData = {
+      $and: querys,
+    };
+  }
+
+  /**
+   * 分页条数数据
+   * @param param
+   */
+  limit(param: number) {
+    if (!isNumber(param)) {
+      error(400);
+    }
+    if (param > 1000) {
+      param = 1000;
+    }
+    this.limitData = param;
+  }
+
+  /**
+   * 跳页
+   * @param parmas
+   */
+  skip(param: number) {
+    if (!isNumber(param)) {
+      error(400);
+    }
+    this.skipData = param;
+  }
+
+  /**
+   * 结果排序
+   * @param key
+   */
+  order(...param: string[]) {
+    param.forEach((item) => {
+      if (!isString(item)) {
+        error(400);
+      }
+    });
+    this.orderData = param.join(',');
+  }
+
+  /**
+   * 查询 Pointer 关联表
+   * @param param
+   */
+  include(...param: string[]) {
+    param.forEach((item) => {
+      if (!isString(item)) {
+        error(400);
+      }
+    });
+    this.includeData = param.join(',');
+  }
+
+  /**
+   * 查询指定列
+   * @param param
+   */
+  select(...param: string[]) {
+    param.forEach((item) => {
+      if (!isString(item)) {
+        error(400);
+      }
+    });
+    this.selectData = param.join(',');
+  }
+
+  /**
+   * 设置需要查询的 Reilation 字段
+   * @param key
+   * @param objectId
+   */
+  field(key: string, objectId: string) {
+    if (!isString(key) || !isString(objectId)) {
+      error(400);
+    }
+    this.queryReilation.where = {
+      $relatedTo: {
+        object: {
+          __type: 'Pointer',
+          className: this.tableName,
+          objectId: objectId,
+        },
+        key: key,
+      },
+    };
+  }
+
+  /**
+   * 查询 relation 关联数据
+   * @param tableName
+   * @returns
+   */
+  relation(tableName: string) {
+    if (!isString(tableName)) {
+      error(400);
+    }
+    const name = tableName === '_User' ? 'users' : `classes/${tableName}`;
+    this.queryReilation.count = 1;
+    const parmas = {
+      ...getParams(this),
+      ...this.queryReilation,
+    };
+    return request(`/1/${name}`, 'GET', parmas);
   }
 }
 

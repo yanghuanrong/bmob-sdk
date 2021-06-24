@@ -13,11 +13,16 @@
       Bmob.initialize('c8bed465c9e6a524', '999999');
 
       (async function () {
-        const User = Bmob.Query('zz');
-        User.get('e7ccfddd96').then((res) => {
+        const query = Bmob.Query('_Role');
+        // query.get('e7ccfddd96').then((res) => {
+        //   console.log(res);
+        // });
+
+        query.field('users', 'ac0R1112');
+        query.relation('_User').then((res) => {
           console.log(res);
         });
-        User.containedIn('playerName', ['Bmob', 'Codenow', 'JS']);
+
         // User.set('title', '1234');
         // User.set({
         //   content: 'hello',

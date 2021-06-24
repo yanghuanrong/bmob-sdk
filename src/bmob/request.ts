@@ -27,12 +27,21 @@ function setHeader(route: string, method: string, parma: object) {
   return header;
 }
 
-function request(route: string, mehods: string, data?: any) {
+function request(route: string, mehods: string, value?: any) {
   const Serve = new Web({
     baseURL,
-    headers: setHeader(route, mehods, data),
+    headers: setHeader(route, mehods, value),
   });
-  return Serve.request(route, mehods, data);
+  const data: any = {
+    route,
+    mehods,
+  };
+  if (mehods === 'GET') {
+    data.param = value;
+  } else {
+    data.data = value;
+  }
+  return Serve.request(data);
 }
 
 export default request;

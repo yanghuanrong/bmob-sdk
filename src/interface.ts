@@ -13,3 +13,10 @@ export interface pointDTO {
   latitude: number;
   longitude: number;
 }
+
+export interface reqDTO {
+  route: string;
+  method: string;
+  param?: any;
+  data?: any;
+}

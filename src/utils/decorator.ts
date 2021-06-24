@@ -1,4 +1,5 @@
 import { isUndefined } from './index';
+
 /**
  * 给返回的数据注入属性
  * @param target
@@ -50,7 +51,7 @@ export function injectProperty(
  * @param propertyKey
  * @param descriptor
  */
-export function injectQuery(operator: string) {
+export function injectQuery(operator: string, val?: boolean) {
   return function (
     target: any,
     propertyKey: string,
@@ -63,10 +64,9 @@ export function injectQuery(operator: string) {
       const [key, value] = args;
       const data = {
         [key]: {
-          [operator]: value,
+          [operator]: value || val,
         },
       };
-      console.log(self.queryData);
       if (Object.keys(self.queryData).length) {
         if (!isUndefined(self.queryData.$and)) {
           self.queryData.$and.push(data);
@@ -82,4 +82,57 @@ export function injectQuery(operator: string) {
       return self;
     };
   };
+}
+
+/**
+ * 获取 Query 对象的公有属性
+ * @param self
+ * @returns
+ */
+export function getParams(self: any) {
+  let parmas: any = {};
+  parmas.where = {
+    ...self.queryData,
+  };
+  if (Object.keys(self.location).length) {
+    parmas.where = {
+      ...self.location,
+      ...self.queryData,
+    };
+  }
+  if (Object.keys(self.andData).length) {
+    parmas.where = {
+      ...self.andData,
+      ...self.queryData,
+    };
+  }
+  if (Object.keys(self.orData).length) {
+    parmas.where = {
+      ...self.orData,
+      ...self.queryData,
+    };
+  }
+  parmas.limit = self.limitData;
+  parmas.skip = self.skipData;
+  parmas.include = self.includeData;
+  parmas.order = self.orderData;
+  parmas.keys = self.selectData;
+
+  if (Object.keys(self.stat).length) {
+    parmas = {
+      ...parmas,
+      ...self.stat,
+    };
+  }
+
+  for (const key in parmas) {
+    if (
+      (parmas.hasOwnProperty(key) && parmas[key] === null) ||
+      parmas[key] === 0 ||
+      parmas[key] === ''
+    ) {
+      delete parmas[key];
+    }
+  }
+  return parmas;
 }

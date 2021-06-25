@@ -14,7 +14,6 @@ try {
 
 function transform(data: any) {
   let str = '';
-  console.log(data);
   for (let k in data) {
     str += `${k}=${JSON.stringify(data[k])}&`;
   }

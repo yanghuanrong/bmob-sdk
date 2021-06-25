@@ -1,5 +1,6 @@
-import { isUndefined } from './index';
-
+import { isUndefined, error } from './index';
+import request from '../bmob/request';
+import { BATCH } from '../bmob/api';
 /**
  * 给返回的数据注入属性
  * @param target
@@ -135,4 +136,53 @@ export function getParams(self: any) {
     }
   }
   return parmas;
+}
+
+/**
+ * 查询全部数据的注入
+ * @param target
+ * @param propertyKey
+ * @param descriptor
+ * @returns
+ */
+export function injectFind(
+  target: any,
+  propertyKey: string,
+  descriptor: TypedPropertyDescriptor<any>
+): any {
+  const originalMethod = descriptor.value;
+  descriptor.value = async function (...args: any) {
+    try {
+      const result = await originalMethod.apply(this, args);
+      const Query = Object.create(this);
+
+      Object.defineProperty(result, 'destroyAll', {
+        value: function () {
+          if (result.length < 1) {
+            error(401);
+          }
+          const key = result.map((item: any) => {
+            return {
+              method: 'DELETE',
+              path: `${Query.queryPath}/${item.objectId}`,
+            };
+          });
+          return request(BATCH, 'POST', {
+            requests: key,
+          });
+        },
+      });
+      Object.defineProperty(result, 'saveAll', {
+        value: Query.saveAll.bind(Query),
+      });
+      Object.defineProperty(result, 'set', {
+        value: Query.set.bind(Query),
+      });
+
+      return result;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  return descriptor;
 }

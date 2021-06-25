@@ -1,6 +1,11 @@
 import request from './request';
 import { QUERY, BATCH } from './api';
-import { injectProperty, injectQuery, getParams } from '../utils/decorator';
+import {
+  injectProperty,
+  injectQuery,
+  injectFind,
+  getParams,
+} from '../utils/decorator';
 import { pointDTO } from '../interface';
 import {
   isObject,
@@ -564,6 +569,57 @@ class Query {
       ...this.queryReilation,
     };
     return request(`/1/${name}`, 'GET', parmas);
+  }
+
+  /**
+   * 统计记录数量
+   * @param limit
+   * @returns
+   */
+  count(limit = 0) {
+    const parmas: any = {};
+    if (Object.keys(this.queryData).length) {
+      parmas.where = this.queryData;
+    }
+    if (Object.keys(this.andData).length) {
+      parmas.where = {
+        ...this.andData,
+        ...this.queryData,
+      };
+    }
+    if (Object.keys(this.orData).length) {
+      parmas.where = {
+        ...this.orData,
+        ...this.queryData,
+      };
+    }
+    parmas.count = 1;
+    parmas.limit = limit;
+    return request(this.queryPath, 'GET', parmas);
+  }
+
+  /**
+   * 查询所有数据
+   */
+  @injectFind
+  async find() {
+    const parmas = getParams(this);
+    const result: any = await request(`${this.queryPath}`, 'GET', parmas);
+    const data = parmas.hasOwnProperty('count') ? result.results : result;
+
+    this.queryData = {};
+    this.location = {};
+    this.andData = {};
+    this.orData = {};
+    this.stat = {};
+    this.limitData = 100;
+    this.skipData = 0;
+    this.includeData = '';
+    this.queryReilation = {};
+    this.orderData = null;
+    this.selectData = null;
+
+    return data;
   }
 }
 
